@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Wayfinder — Planetary View (live)</title>
+<style>
+  :root{
+    --void:#070b16; --void2:#0b1122; --line:#232a45; --star:#e9edfb; --muted:#7c85a6;
+    --frontier:#f5b942; --claimed:#49d4e6; --blocked:#d9564b; --resolved:#6c8fd6; --goal:#fff4d6;
+    --chrome:#5b6cff; --hud-bg:rgba(9,13,26,.82);
+    --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--void)}
+  #app{position:fixed;inset:0;overflow:hidden;color:var(--star);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;cursor:grab;background:
+      radial-gradient(120% 90% at 18% 62%, rgba(245,185,66,.06), transparent 46%),
+      radial-gradient(130% 100% at 82% 40%, rgba(91,108,255,.08), transparent 52%),
+      radial-gradient(100% 100% at 50% 50%, var(--void2), var(--void) 78%)}
+  #app.dragging{cursor:grabbing}
+  canvas{display:block;position:absolute;inset:0}
+  .top{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;pointer-events:none;z-index:3;gap:12px}
+  .top .grp{display:flex;gap:8px;pointer-events:auto}
+  .btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;
+    letter-spacing:.03em;color:var(--muted);background:var(--hud-bg);border:1px solid var(--line);
+    border-radius:8px;padding:8px 12px;backdrop-filter:blur(8px);cursor:pointer;text-decoration:none}
+  .btn:hover{color:var(--star);border-color:var(--chrome)}
+  .btn.spin{opacity:.6;pointer-events:none}
+  .hint{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.03em;text-shadow:0 1px 8px #000}
+  .hint b{color:#aab2d0;font-weight:500}
+
+  /* setup overlay */
+  #setup{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;
+    background:rgba(6,9,18,.72);backdrop-filter:blur(6px);padding:20px}
+  #setup .card{width:min(460px,100%);background:var(--void2);border:1px solid var(--line);border-radius:16px;
+    padding:26px 26px 22px;box-shadow:0 40px 90px -30px #000}
+  #setup h1{font-size:19px;font-weight:650;letter-spacing:-.01em;margin-bottom:6px}
+  #setup .sub{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:18px}
+  #setup label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+  #setup input{width:100%;background:#0a0f1f;border:1px solid var(--line);border-radius:9px;
+    color:var(--star);font-family:var(--mono);font-size:13px;padding:10px 12px}
+  #setup input:focus{outline:none;border-color:var(--chrome)}
+  #setup .row{display:flex;gap:10px}
+  #setup .row input{flex:1}
+  #setup .go{width:100%;margin-top:18px;justify-content:center;background:var(--chrome);color:#fff;
+    border-color:transparent;font-size:13px;padding:11px}
+  #setup .go:hover{filter:brightness(1.08)}
+  #setup .help{font-size:11.5px;color:var(--muted);line-height:1.55;margin-top:14px}
+  #setup .help a{color:var(--chrome)}
+  #setup .err{color:#ffb3ab;font-size:12.5px;margin-top:12px;font-family:var(--mono);display:none;white-space:pre-wrap}
+  .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.25);
+    border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* detail panel */
+  #panel{position:absolute;top:62px;right:16px;width:322px;max-width:calc(100vw - 32px);
+    background:var(--hud-bg);border:1px solid var(--line);border-radius:14px;padding:18px;
+    backdrop-filter:blur(12px);z-index:4;box-shadow:0 24px 60px -20px #000;
+    transform:translateY(-8px);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
+  #panel.show{opacity:1;transform:none;pointer-events:auto}
+  #panel .num{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.08em}
+  #panel h2{font-size:17px;line-height:1.3;margin:6px 0 12px;text-wrap:balance;font-weight:600}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
+    letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:999px;border:1px solid;
+    background:rgba(255,255,255,.03)}
+  .tag{margin-left:8px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.05em}
+  .dot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px currentColor}
+  .rel{margin-top:14px}
+  .rel h3{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:7px;font-weight:600}
+  .rel ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+  .rel li{display:flex;gap:8px;align-items:center;font-size:13px;line-height:1.35;color:#c3cae4;cursor:pointer}
+  .rel li .n{font-family:var(--mono);font-size:11px;color:var(--muted);flex:none;font-variant-numeric:tabular-nums}
+  .rel li .sd{width:7px;height:7px;border-radius:50%;flex:none}
+  .rel li span.tt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rel.empty span{font-size:12.5px;color:var(--muted);font-style:italic}
+  #panel a.gh{margin-top:16px;display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);
+    font-size:12px;color:var(--chrome);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:8px 11px}
+  #panel a.gh:hover{border-color:var(--chrome);background:rgba(91,108,255,.08)}
+  #panel .x{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);
+    font-size:20px;line-height:1;cursor:pointer;font-family:var(--mono)}
+  #panel .x:hover{color:var(--star)}
+
+  /* HUD */
+  .hud{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;align-items:center;gap:18px;
+    padding:14px 20px;background:linear-gradient(0deg,var(--void) 8%,transparent);flex-wrap:wrap}
+  .hud .id{min-width:200px}
+  .hud .id h1{font-size:15px;font-weight:600;letter-spacing:-.01em}
+  .hud .id p{font-size:11.5px;color:var(--muted);margin-top:3px;font-family:var(--mono);
+    max-width:340px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .counts{display:flex;gap:8px;flex-wrap:wrap}
+  .count{font-family:var(--mono);font-size:11.5px;color:#c3cae4;background:var(--hud-bg);
+    border:1px solid var(--line);border-radius:999px;padding:5px 11px;display:inline-flex;align-items:center;
+    gap:7px;font-variant-numeric:tabular-nums}
+  .prog{flex:1;min-width:120px;height:6px;border-radius:999px;background:#1a2038;overflow:hidden;border:1px solid var(--line)}
+  .prog i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--resolved),var(--frontier));transition:width .5s}
+  .legend{display:flex;gap:12px;flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .toast{position:absolute;top:60px;left:50%;transform:translateX(-50%);z-index:6;font-family:var(--mono);
+    font-size:12px;color:#ffd9d3;background:rgba(60,20,20,.9);border:1px solid #7a3b34;border-radius:8px;
+    padding:8px 14px;display:none}
+  @media (max-width:720px){.hud .id p{max-width:180px}.hint{display:none}#panel{width:290px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="sky"></canvas>
+
+  <div class="top">
+    <div class="grp">
+      <a class="btn" id="mapLink" target="_blank" rel="noopener">← map</a>
+      <button class="btn" id="refresh">↻ refresh</button>
+    </div>
+    <div class="hint"><b>drag</b> pan · <b>scroll</b> zoom · <b>click</b> a star</div>
+    <div class="grp"><button class="btn" id="signout">token</button></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <aside id="panel" aria-live="polite">
+    <button class="x" aria-label="Close">×</button>
+    <div class="num" id="p-num"></div>
+    <h2 id="p-title"></h2>
+    <span class="pill" id="p-pill"><span class="dot"></span><span id="p-state"></span></span><span class="tag" id="p-type"></span>
+    <div class="rel" id="p-blockedby"><h3>Blocked by</h3><ul></ul></div>
+    <div class="rel" id="p-blocks"><h3>Unblocks</h3><ul></ul></div>
+    <a class="gh" id="p-link" target="_blank" rel="noopener">open issue ↗</a>
+  </aside>
+
+  <div class="hud">
+    <div class="id"><h1 id="mapTitle">Loading…</h1><p id="mapSub"></p></div>
+    <div class="counts">
+      <span class="count"><span class="dot" style="color:var(--resolved)"></span><b id="c-res">0</b>&nbsp;resolved</span>
+      <span class="count"><span class="dot" style="color:var(--claimed)"></span><b id="c-cla">0</b>&nbsp;claimed</span>
+      <span class="count"><span class="dot" style="color:var(--frontier)"></span><b id="c-fro">0</b>&nbsp;frontier</span>
+      <span class="count"><span class="dot" style="color:var(--blocked)"></span><b id="c-blo">0</b>&nbsp;blocked</span>
+    </div>
+    <div class="prog"><i id="prog"></i></div>
+    <div class="legend">
+      <span><span class="dot" style="color:var(--frontier)"></span>frontier</span>
+      <span><span class="dot" style="color:var(--claimed)"></span>claimed</span>
+      <span><span class="dot" style="color:var(--blocked)"></span>blocked</span>
+      <span><span class="dot" style="color:var(--resolved)"></span>resolved</span>
+    </div>
+  </div>
+
+  <div id="setup">
+    <div class="card">
+      <h1>Connect to GitHub</h1>
+      <div class="sub">The view reads the map's issues directly from the GitHub API. For a public repo a token is <b>optional</b> — leave it blank to browse read-only. Any token you add stays in this browser (<code>localStorage</code>) and is sent only to <code>api.github.com</code>.</div>
+      <div class="row">
+        <div style="flex:2"><label>Owner / repo</label><input id="in-repo" value="ventsislavnikolov/concierge-mvp-boilerplate" spellcheck="false"></div>
+        <div style="width:96px"><label>Map #</label><input id="in-map" value="1" inputmode="numeric"></div>
+      </div>
+      <label>GitHub token · optional</label>
+      <input id="in-token" type="password" placeholder="leave blank for public read-only" spellcheck="false" autocomplete="off">
+      <button class="btn go" id="connect">Connect</button>
+      <div class="err" id="setup-err"></div>
+      <div class="help">Public repo → no token needed (60 API calls/hr shared). Each load is ~40 calls, so if you refresh often add a <b>fine-grained PAT</b> from <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens</a> (Issues: Read-only) to get 5,000/hr.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const LS_TOKEN="wf_gh_token", LS_REPO="wf_repo", LS_MAP="wf_map";
+const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const COLOR={frontier:"#f5b942",claimed:"#49d4e6",blocked:"#d9564b",resolved:"#6c8fd6",goal:"#fff4d6"};
+const STATE_LABEL={frontier:"Frontier · takeable now",blocked:"Blocked",resolved:"Resolved",claimed:"Claimed",goal:"Destination"};
+let TOKEN=localStorage.getItem(LS_TOKEN)||"";
+let REPO=localStorage.getItem(LS_REPO)||"ventsislavnikolov/concierge-mvp-boilerplate";
+let MAP=+(localStorage.getItem(LS_MAP)||1);
+let GRAPH=null, cam={s:1,tx:0,ty:0}, hover=null, selected=null, t0=performance.now();
+const $=id=>document.getElementById(id);
+
+// ---------- data layer ----------
+async function gh(path){
+  const headers={"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"};
+  if(TOKEN)headers["Authorization"]="Bearer "+TOKEN;
+  const r=await fetch("https://api.github.com"+path,{headers});
+  if(!r.ok){const e=new Error(r.status+" "+r.statusText);e.status=r.status;try{e.detail=(await r.json()).message;}catch(_){}throw e;}
+  return r.json();
+}
+function typeOf(labels){const l=(labels||[]).map(x=>x.name).find(n=>n.startsWith("wayfinder:")&&n!=="wayfinder:map");return l?l.split(":")[1]:"";}
+
+async function loadData(){
+  const [owner,repo]=REPO.split("/");
+  const base="/repos/"+owner+"/"+repo;
+  const [mapIssue, subs] = await Promise.all([
+    gh(base+"/issues/"+MAP),
+    gh(base+"/issues/"+MAP+"/sub_issues?per_page=100")
+  ]);
+  const childNums=new Set(subs.map(s=>s.number));
+  // blockers per child (parallel)
+  const blockers=await Promise.all(subs.map(s=>gh(base+"/issues/"+s.number+"/dependencies/blocked_by").catch(()=>[])));
+  // build node records
+  const recs=subs.map((s,i)=>{
+    const bl=blockers[i].filter(x=>childNums.has(x.number));
+    const openBlockers=bl.filter(x=>x.state==="open").length;
+    let st = s.state==="closed" ? "resolved" : (s.assignee ? "claimed" : (openBlockers>0?"blocked":"frontier"));
+    return {n:s.number, t:s.title.replace(/\s*[—-]\s*$/,""), s:st, b:bl.map(x=>x.number),
+            type:typeOf(s.labels), url:s.html_url};
+  });
+  return buildGraph(recs, mapIssue, owner, repo);
+}
+
+function buildGraph(recs, mapIssue, owner, repo){
+  const byN={}; recs.forEach(r=>byN[r.n]=r);
+  // depth via longest path from roots
+  const depthMemo={};
+  function depth(n,stack){
+    if(n in depthMemo)return depthMemo[n];
+    if(stack.has(n))return 0;
+    stack.add(n);
+    const bs=(byN[n]?.b||[]).filter(x=>x in byN);
+    const d=bs.length?1+Math.max(...bs.map(x=>depth(x,stack))):0;
+    stack.delete(n); return depthMemo[n]=d;
+  }
+  recs.forEach(r=>r.d=depth(r.n,new Set()));
+  // sinks -> destination
+  const isBlocker=new Set(); recs.forEach(r=>r.b.forEach(x=>isBlocker.add(x)));
+  const sinks=recs.filter(r=>!isBlocker.has(r.n)).map(r=>r.n);
+  const maxD=Math.max(0,...recs.map(r=>r.d));
+  const dest={n:0,t:"Destination",s:"goal",b:sinks,d:maxD+1,type:"",url:mapIssue.html_url};
+  const all=[...recs,dest]; const allByN={}; all.forEach(r=>allByN[r.n]=r);
+  // edges + reverse
+  const edges=[]; all.forEach(r=>r.b.forEach(bn=>{if(bn in allByN)edges.push([bn,r.n]);}));
+  const blocksOf={}; all.forEach(r=>blocksOf[r.n]=[]);
+  edges.forEach(([f,t])=>blocksOf[f].push(t));
+  // layout
+  const cols={}; all.forEach(r=>(cols[r.d]=cols[r.d]||[]).push(r));
+  const nodes={}; const COLGAP=250, ROWGAP=132;
+  const H=(i)=>{let x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x);};
+  Object.keys(cols).forEach(d=>{const list=cols[d],k=list.length;
+    list.forEach((r,i)=>{nodes[r.n]={...r,
+      x:r.d*COLGAP+(H(r.n+9)-.5)*30, y:(i-(k-1)/2)*ROWGAP+(H(r.n)-.5)*46,
+      r:r.s==="goal"?20:(r.s==="frontier"?12:9), c:COLOR[r.s]};});});
+  // counts
+  const cnt={resolved:0,claimed:0,frontier:0,blocked:0};
+  recs.forEach(r=>cnt[r.s]!==undefined&&cnt[r.s]++);
+  return {nodes,edges,blocksOf,byN:allByN, meta:{
+    title:mapIssue.title, total:recs.length, cnt, owner, repo, mapUrl:mapIssue.html_url}};
+}
+
+// ---------- render engine ----------
+const app=$("app"), cv=$("sky"), ctx=cv.getContext("2d");
+let W=0,H=0,DPR=Math.min(devicePixelRatio||1,2);
+function resize(){W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;
+  cv.style.width=W+"px";cv.style.height=H+"px";ctx.setTransform(DPR,0,0,DPR,0,0);}
+function fit(){const xs=Object.values(GRAPH.nodes);
+  const minX=Math.min(...xs.map(n=>n.x)),maxX=Math.max(...xs.map(n=>n.x)),
+        minY=Math.min(...xs.map(n=>n.y)),maxY=Math.max(...xs.map(n=>n.y));
+  const gw=maxX-minX+300,gh2=maxY-minY+300;
+  cam.s=Math.min(W/gw,H/gh2,1.05)*.9;
+  cam.tx=W/2-((minX+maxX)/2)*cam.s; cam.ty=H/2-((minY+maxY)/2)*cam.s-10;}
+resize(); addEventListener("resize",resize);
+const sx=x=>x*cam.s+cam.tx, sy=y=>y*cam.s+cam.ty;
+const BG=Array.from({length:220},(_,i)=>{const h=j=>{let x=Math.sin(j*12.9898+78.2)*43758.5;return x-Math.floor(x);};
+  return{x:h(i)*1.4-.2,y:h(i+50)*1.4-.2,z:.3+h(i+99)*.7,tw:h(i+7)*6.28};});
+function hexA(hex,a){const h=hex.replace("#","");return`rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},${a})`;}
+function trim(s,m){return s.length>m?s.slice(0,m-1)+"…":s;}
+function neighbors(n){const set=new Set([n]);(GRAPH.byN[n].b||[]).forEach(b=>set.add(b));(GRAPH.blocksOf[n]||[]).forEach(b=>set.add(b));return set;}
+function H2(i){let x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x);}
+
+function draw(now){
+  const t=(now-t0)/1000; ctx.clearRect(0,0,W,H);
+  const px=cam.tx*.04, py=cam.ty*.04;
+  for(const b of BG){const x=((b.x*W+px*b.z)%W+W)%W,y=((b.y*H+py*b.z)%H+H)%H;
+    let a=.25+.55*b.z; if(!reduced)a*=.6+.4*Math.sin(t*1.3+b.tw);
+    ctx.fillStyle=`rgba(200,210,240,${a*.5})`; ctx.fillRect(x,y,b.z>.8?1.6:1,b.z>.8?1.6:1);}
+  if(!GRAPH){requestAnimationFrame(draw);return;}
+  neb(1*250,-10,360,"rgba(245,185,66,.10)"); neb(3*250,40,420,"rgba(91,108,255,.10)");
+  const dn=GRAPH.nodes[0]; if(dn) neb(dn.x,dn.y,300,"rgba(255,244,214,.09)");
+  const active=hover!=null?hover:selected, near=active!=null?neighbors(active):null;
+  ctx.lineWidth=1;
+  for(const [from,to] of GRAPH.edges){const a=GRAPH.nodes[from],b=GRAPH.nodes[to]; if(!a||!b)continue;
+    const lit=near&&near.has(from)&&near.has(to)&&(from===active||to===active), dim=near&&!lit;
+    ctx.strokeStyle=lit?"rgba(245,185,66,.55)":dim?"rgba(120,130,165,.10)":"rgba(150,162,205,.22)";
+    ctx.lineWidth=lit?1.6:1; curve(a,b);
+    arrow(a,b,lit?"rgba(245,185,66,.7)":dim?"rgba(120,130,165,.12)":"rgba(150,162,205,.30)");}
+  for(const n of Object.values(GRAPH.nodes)){
+    const dim=near&&!near.has(n.n), X=sx(n.x),Y=sy(n.y),r=n.r*cam.s;
+    let pulse=1; if(!reduced&&n.s==="frontier")pulse=1+.18*Math.sin(t*2.2+n.n);
+    const R=r*(n.s==="goal"?5:3.4)*pulse;
+    const gr=ctx.createRadialGradient(X,Y,0,X,Y,R);
+    gr.addColorStop(0,hexA(n.c,dim?.10:(n.s==="frontier"?.55:.4))); gr.addColorStop(1,hexA(n.c,0));
+    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(X,Y,R,0,7); ctx.fill();
+    ctx.beginPath(); ctx.arc(X,Y,Math.max(r,2.2),0,7);
+    ctx.fillStyle=dim?hexA(n.c,.5):(n.s==="goal"?"#fff9ec":n.c); ctx.globalAlpha=dim?.5:1; ctx.fill(); ctx.globalAlpha=1;
+    if(n.s==="goal"){ctx.lineWidth=1.5;ctx.strokeStyle=hexA("#f5b942",.8);ctx.beginPath();ctx.arc(X,Y,r*1.7,0,7);ctx.stroke();}
+    if(n.n===active){ctx.lineWidth=1.5;ctx.strokeStyle="rgba(255,255,255,.85)";ctx.beginPath();ctx.arc(X,Y,Math.max(r,2.2)+5,0,7);ctx.stroke();}
+    if(cam.s>.42||n.s==="goal"||n.n===active){
+      const lbl=(n.s==="goal"?"✧ ":"#"+n.n+"  ")+(n.s==="goal"?"Destination":trim(n.t,26));
+      ctx.font=(n.n===active?"600 ":"")+(n.s==="goal"?"13":"12")+"px "+(n.s==="goal"?"system-ui,sans-serif":"ui-monospace,Menlo,monospace");
+      ctx.textAlign="left";ctx.textBaseline="middle";
+      ctx.fillStyle=dim?"rgba(160,168,196,.28)":(n.n===active?"#fff":"rgba(206,214,238,.9)");
+      ctx.fillText(lbl,X+r+9,Y);}
+  }
+  requestAnimationFrame(draw);
+}
+function neb(x,y,rad,col){const X=sx(x),Y=sy(y),R=rad*cam.s;const g=ctx.createRadialGradient(X,Y,0,X,Y,R);
+  g.addColorStop(0,col);g.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=g;ctx.beginPath();ctx.arc(X,Y,R,0,7);ctx.fill();}
+function curve(a,b){const ax=sx(a.x),ay=sy(a.y),bx=sx(b.x),by=sy(b.y);const mx=(ax+bx)/2,my=(ay+by)/2;
+  const dx=bx-ax,dy=by-ay,len=Math.hypot(dx,dy)||1,off=Math.min(len*.16,44)*(H2(a.x+b.y)>.5?1:-1);
+  ctx.beginPath();ctx.moveTo(ax,ay);ctx.quadraticCurveTo(mx-dy/len*off,my+dx/len*off,bx,by);ctx.stroke();}
+function arrow(a,b,col){const bx=sx(b.x),by=sy(b.y),ax=sx(a.x),ay=sy(a.y),ang=Math.atan2(by-ay,bx-ax),
+  r=b.r*cam.s+4,tx=bx-Math.cos(ang)*r,ty=by-Math.sin(ang)*r,s=5.5;
+  ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(tx,ty);
+  ctx.lineTo(tx-Math.cos(ang-.5)*s,ty-Math.sin(ang-.5)*s);ctx.lineTo(tx-Math.cos(ang+.5)*s,ty-Math.sin(ang+.5)*s);
+  ctx.closePath();ctx.fill();}
+
+// ---------- interaction ----------
+let drag=null;
+function hitTest(mx,my){let best=null,bd=1e9; if(!GRAPH)return null;
+  for(const n of Object.values(GRAPH.nodes)){const d=Math.hypot(sx(n.x)-mx,sy(n.y)-my),rr=Math.max(n.r*cam.s,10)+8;
+    if(d<rr&&d<bd){bd=d;best=n.n;}} return best;}
+cv.addEventListener("mousemove",e=>{if(drag){cam.tx+=e.clientX-drag.x;cam.ty+=e.clientY-drag.y;drag={x:e.clientX,y:e.clientY,mx:drag.mx,my:drag.my};return;}
+  const h=hitTest(e.clientX,e.clientY);hover=h;cv.style.cursor=h!=null?"pointer":"";});
+cv.addEventListener("mousedown",e=>{drag={x:e.clientX,y:e.clientY,mx:e.clientX,my:e.clientY};app.classList.add("dragging");});
+addEventListener("mouseup",e=>{if(drag){if(Math.hypot(e.clientX-drag.mx,e.clientY-drag.my)<5){const h=hitTest(e.clientX,e.clientY);h!=null?openPanel(h):closePanel();}}drag=null;app.classList.remove("dragging");});
+cv.addEventListener("wheel",e=>{e.preventDefault();const f=Math.exp(-e.deltaY*.0016),ns=Math.min(2.6,Math.max(.28,cam.s*f)),k=ns/cam.s;
+  cam.tx=e.clientX-(e.clientX-cam.tx)*k;cam.ty=e.clientY-(e.clientY-cam.ty)*k;cam.s=ns;},{passive:false});
+let ts=null;
+cv.addEventListener("touchstart",e=>{if(e.touches.length===1){const t=e.touches[0];ts={x:t.clientX,y:t.clientY,tx:cam.tx,ty:cam.ty};}},{passive:true});
+cv.addEventListener("touchmove",e=>{if(ts&&e.touches.length===1){const t=e.touches[0];cam.tx=ts.tx+(t.clientX-ts.x);cam.ty=ts.ty+(t.clientY-ts.y);}},{passive:true});
+
+// ---------- panel ----------
+function relList(el,arr){const ul=el.querySelector("ul");ul.innerHTML="";
+  if(!arr.length){el.classList.add("empty");ul.innerHTML="<span>"+(el.id==="p-blockedby"?"nothing — on the frontier":"a leaf — nothing waits on it")+"</span>";return;}
+  el.classList.remove("empty");
+  arr.forEach(m=>{const o=GRAPH.byN[m];if(!o)return;const li=document.createElement("li");
+    li.innerHTML=`<span class="sd" style="background:${o.c};box-shadow:0 0 7px ${o.c}"></span><span class="n">#${o.n===0?"★":o.n}</span><span class="tt">${o.n===0?"Destination":o.t}</span>`;
+    li.onclick=()=>openPanel(m);ul.appendChild(li);});}
+function openPanel(n){selected=n;const o=GRAPH.byN[n];
+  $("p-num").textContent=o.n===0?"DESTINATION":"TICKET #"+o.n;
+  $("p-title").textContent=o.n===0?"Destination":o.t;
+  $("p-state").textContent=STATE_LABEL[o.s];
+  const pill=$("p-pill");pill.style.color=o.c;pill.style.borderColor=hexA(o.c,.5);pill.querySelector(".dot").style.color=o.c;
+  $("p-type").textContent=o.type?"· "+o.type:"";
+  relList($("p-blockedby"),o.b); relList($("p-blocks"),GRAPH.blocksOf[n]||[]);
+  const link=$("p-link");if(o.url){link.style.display="inline-flex";link.href=o.url;}else link.style.display="none";
+  $("panel").classList.add("show");}
+function closePanel(){selected=null;$("panel").classList.remove("show");}
+$("panel").querySelector(".x").onclick=closePanel;
+addEventListener("keydown",e=>{if(e.key==="Escape")closePanel();});
+
+// ---------- HUD ----------
+function paintHUD(){const m=GRAPH.meta;
+  $("mapTitle").textContent=m.title;
+  $("mapSub").textContent="map #"+MAP+" · "+m.total+" tickets · "+m.owner+"/"+m.repo;
+  $("mapLink").href=m.mapUrl;
+  $("c-res").textContent=m.cnt.resolved;$("c-cla").textContent=m.cnt.claimed;
+  $("c-fro").textContent=m.cnt.frontier;$("c-blo").textContent=m.cnt.blocked;
+  $("prog").style.width=(m.total?Math.round(m.cnt.resolved/m.total*100):0)+"%";}
+function toast(msg){const t=$("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",4200);}
+
+// ---------- boot ----------
+async function refresh(){
+  const btn=$("refresh");btn.classList.add("spin");btn.innerHTML='<span class="spinner"></span> loading';
+  try{const first=!GRAPH; GRAPH=await loadData(); if(first)fit(); paintHUD();
+    if(selected!=null&&GRAPH.byN[selected])openPanel(selected); else closePanel();}
+  catch(e){handleErr(e);}
+  finally{btn.classList.remove("spin");btn.innerHTML="↻ refresh";}
+}
+function handleErr(e){
+  const msg=(e.status?e.status+" · ":"")+(e.detail||e.message||"request failed");
+  if(e.status===401||e.status===403){openSetup("Token rejected or lacks access:\n"+msg);}
+  else if(e.status===404){openSetup("Not found — check owner/repo and map # (and that your token can see this private repo):\n"+msg);}
+  else{toast("Refresh failed: "+msg);}
+}
+function openSetup(err){const s=$("setup");s.style.display="flex";
+  $("in-repo").value=REPO;$("in-map").value=MAP;$("in-token").value=TOKEN;
+  const el=$("setup-err");if(err){el.style.display="block";el.textContent=err;}else el.style.display="none";}
+function closeSetup(){$("setup").style.display="none";}
+$("connect").onclick=async()=>{
+  REPO=$("in-repo").value.trim();MAP=+$("in-map").value.trim()||1;TOKEN=$("in-token").value.trim();
+  if(!/^[^/]+\/[^/]+$/.test(REPO)){openSetup("Enter owner/repo, e.g. ventsislavnikolov/concierge-mvp-boilerplate");return;}
+  localStorage.setItem(LS_TOKEN,TOKEN);localStorage.setItem(LS_REPO,REPO);localStorage.setItem(LS_MAP,String(MAP));
+  const btn=$("connect");btn.innerHTML='<span class="spinner"></span> connecting';
+  try{GRAPH=await loadData();fit();paintHUD();closeSetup();}catch(e){handleErr(e);}
+  finally{btn.innerHTML="Connect";}
+};
+$("refresh").onclick=()=>refresh();
+$("signout").onclick=()=>openSetup();
+$("in-token").addEventListener("keydown",e=>{if(e.key==="Enter")$("connect").click();});
+
+requestAnimationFrame(draw);
+closeSetup();
+refresh();
+</script>
+</body>
+</html>
