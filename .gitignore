@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+.output/
+.nitro/
+.vercel/
+.tanstack/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Convex
+.convex/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+.idea/
+*.swp
+
+# Test / coverage
+coverage/
+playwright-report/
+test-results/
