@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## Working process
+
+Defaults + escalation ladder for agent sessions: single session first, `/fork` → subagents (maker+checker) → teams → workflows only when the level below hits its ceiling. Lifecycle: small → direct; medium → `/to-spec` → `/to-tickets` → `/implement`; large & foggy → `/wayfinder`. See `docs/agents/process.md`.
+
 ## Agent skills
 
 ### Issue tracker
