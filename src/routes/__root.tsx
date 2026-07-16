@@ -3,28 +3,28 @@ import {
   HeadContent,
   Outlet,
   Scripts,
-} from '@tanstack/react-router'
-import type { ReactNode } from 'react'
-import appCss from '@/styles.css?url'
+} from "@tanstack/react-router";
+import type { ReactNode } from "react";
+import appCss from "@/styles.css?url";
 
 export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'concierge-mvp-boilerplate' },
-    ],
-    links: [{ rel: 'stylesheet', href: appCss }],
-  }),
   component: RootComponent,
-})
+  head: () => ({
+    links: [{ href: appCss, rel: "stylesheet" }],
+    meta: [
+      { charSet: "utf-8" },
+      { content: "width=device-width, initial-scale=1", name: "viewport" },
+      { title: "concierge-mvp-boilerplate" },
+    ],
+  }),
+});
 
 function RootComponent() {
   return (
     <RootDocument>
       <Outlet />
     </RootDocument>
-  )
+  );
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
@@ -38,5 +38,5 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <Scripts />
       </body>
     </html>
-  )
+  );
 }
