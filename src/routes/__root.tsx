@@ -1,5 +1,6 @@
+import type { QueryClient } from "@tanstack/react-query";
 import {
-  createRootRoute,
+  createRootRouteWithContext,
   HeadContent,
   Outlet,
   Scripts,
@@ -8,7 +9,9 @@ import type { ReactNode } from "react";
 import { siteConfig } from "@/site.config";
 import appCss from "@/styles.css?url";
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
   component: RootComponent,
   head: () => ({
     links: [{ href: appCss, rel: "stylesheet" }],
