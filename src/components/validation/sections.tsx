@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { WaitlistForm } from "@/components/validation/waitlist-form";
 import type {
   CtaSection,
   HeroSection,
@@ -79,10 +80,7 @@ function Cta({ section }: { section: CtaSection }) {
       <p className="max-w-lg text-balance text-muted-foreground">
         {section.subtitle}
       </p>
-      {/* The waitlist form replaces this button (ticket #12) */}
-      <Button asChild size="lg">
-        <a href={section.button.href}>{section.button.label}</a>
-      </Button>
+      <WaitlistForm cta={{ label: section.button.label }} />
       {section.disclaimer ? (
         <p className="text-muted-foreground text-xs">{section.disclaimer}</p>
       ) : null}
