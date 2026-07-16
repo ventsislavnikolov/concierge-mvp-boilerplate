@@ -5,6 +5,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { siteConfig } from "@/site.config";
 import appCss from "@/styles.css?url";
 
 export const Route = createRootRoute({
@@ -14,7 +15,8 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { content: "width=device-width, initial-scale=1", name: "viewport" },
-      { title: "concierge-mvp-boilerplate" },
+      { title: siteConfig.meta.title },
+      { content: siteConfig.meta.description, name: "description" },
     ],
   }),
 });
@@ -29,7 +31,7 @@ function RootComponent() {
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="bg">
+    <html lang={siteConfig.meta.lang}>
       <head>
         <HeadContent />
       </head>
