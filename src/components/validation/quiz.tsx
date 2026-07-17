@@ -11,17 +11,17 @@ function OptionButton({
   onPick,
   option,
 }: {
-  onPick: (option: string) => void;
-  option: string;
+  onPick: (optionId: string) => void;
+  option: { id: string; label: () => string };
 }) {
-  const handleClick = useCallback(() => onPick(option), [onPick, option]);
+  const handleClick = useCallback(() => onPick(option.id), [onPick, option.id]);
   return (
     <Button
       className="h-auto min-h-11 justify-start whitespace-normal text-left"
       onClick={handleClick}
       variant="outline"
     >
-      {option}
+      {option.label()}
     </Button>
   );
 }
@@ -29,7 +29,8 @@ function OptionButton({
 /**
  * Post-signup micro-survey: one question at a time, answers land in
  * Convex linked to the lead. Questions live in site.config.ts and must
- * probe current behavior (Mom Test), never future intent.
+ * probe current behavior (Mom Test), never future intent. Stored
+ * answers are option ids, so data stays comparable across locales.
  */
 export function Quiz({ leadId }: { leadId: Id<"leads"> }) {
   const { questions, thanks, title } = siteConfig.quiz;
@@ -41,12 +42,12 @@ export function Quiz({ leadId }: { leadId: Id<"leads"> }) {
   const question = questions.at(step);
 
   const handlePick = useCallback(
-    (option: string) => {
+    (optionId: string) => {
       if (!question) {
         return;
       }
       submit.mutate({
-        answer: option,
+        answer: optionId,
         leadId,
         questionId: question.id,
       });
@@ -67,7 +68,7 @@ export function Quiz({ leadId }: { leadId: Id<"leads"> }) {
   if (!question) {
     return (
       <p className="rounded-lg border bg-card px-4 py-3 text-card-foreground">
-        {thanks}
+        {thanks()}
       </p>
     );
   }
@@ -75,12 +76,12 @@ export function Quiz({ leadId }: { leadId: Id<"leads"> }) {
   return (
     <div className="flex w-full max-w-md flex-col gap-3 text-left">
       <p className="text-muted-foreground text-sm">
-        {title} · {step + 1}/{questions.length}
+        {title()} · {step + 1}/{questions.length}
       </p>
-      <h3 className="font-medium text-lg">{question.question}</h3>
+      <h3 className="font-medium text-lg">{question.question()}</h3>
       <div className="flex flex-col gap-2">
         {question.options.map((option) => (
-          <OptionButton key={option} onPick={handlePick} option={option} />
+          <OptionButton key={option.id} onPick={handlePick} option={option} />
         ))}
       </div>
     </div>

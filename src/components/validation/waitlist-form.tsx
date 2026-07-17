@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Quiz } from "@/components/validation/quiz";
 import { capture } from "@/lib/posthog";
 import { leadSchema } from "@/lib/validation";
+import { m } from "@/paraglide/messages";
+import { getLocale } from "@/paraglide/runtime";
 import { siteConfig } from "@/site.config";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -49,7 +51,7 @@ function LeadInput({
  * lead → `waitlist_joined` PostHog event → welcome email. Falls back
  * to a mailto link when Convex is not configured.
  */
-export function WaitlistForm({ cta }: { cta: { label: string } }) {
+export function WaitlistForm({ cta }: { cta: { label: () => string } }) {
   const convexAvailable = Boolean(import.meta.env.VITE_CONVEX_URL);
   const [phase, setPhase] = useState<Phase>("idle");
   const [leadId, setLeadId] = useState<Id<"leads"> | null>(null);
@@ -62,12 +64,12 @@ export function WaitlistForm({ cta }: { cta: { label: string } }) {
     onSubmit: async ({ value }) => {
       const parsed = leadSchema.parse(value);
       const result = await join.mutateAsync({
-        brandName: siteConfig.brand.name,
+        brandName: siteConfig.brand.name(),
         email: parsed.email,
-        locale: siteConfig.meta.lang,
+        locale: getLocale(),
         phone: parsed.phone,
         source: "landing",
-        tagline: siteConfig.brand.tagline,
+        tagline: siteConfig.brand.tagline(),
       });
       capture("waitlist_joined", { alreadyJoined: result.alreadyJoined });
       setLeadId(result.leadId);
@@ -87,9 +89,9 @@ export function WaitlistForm({ cta }: { cta: { label: string } }) {
     return (
       <Button asChild size="lg">
         <a
-          href={`mailto:?subject=${encodeURIComponent(siteConfig.brand.name)}`}
+          href={`mailto:?subject=${encodeURIComponent(siteConfig.brand.name())}`}
         >
-          {cta.label}
+          {cta.label()}
         </a>
       </Button>
     );
@@ -100,8 +102,8 @@ export function WaitlistForm({ cta }: { cta: { label: string } }) {
       <div className="flex w-full max-w-md flex-col items-center gap-4">
         <p className="rounded-lg border bg-card px-4 py-3 text-card-foreground">
           {phase === "joined"
-            ? "Готово — ще ти пишем, когато отворим достъпа. ✅"
-            : "Вече си в списъка — ще се чуем скоро. ✅"}
+            ? m.form_success_joined()
+            : m.form_success_already()}
         </p>
         {leadId ? <Quiz leadId={leadId} /> : null}
       </div>
@@ -119,7 +121,7 @@ export function WaitlistForm({ cta }: { cta: { label: string } }) {
           onSubmit: ({ value }) =>
             leadSchema.shape.email.safeParse(value).success
               ? undefined
-              : "Въведи валиден имейл.",
+              : m.form_email_invalid(),
         }}
       >
         {(field) => (
@@ -128,7 +130,7 @@ export function WaitlistForm({ cta }: { cta: { label: string } }) {
               autoComplete="email"
               field={field}
               inputMode="email"
-              placeholder="имейл адрес"
+              placeholder={m.form_email_placeholder()}
             />
             {field.state.meta.errors[0] ? (
               <span className="text-destructive text-sm">
@@ -144,17 +146,15 @@ export function WaitlistForm({ cta }: { cta: { label: string } }) {
             autoComplete="tel"
             field={field}
             inputMode="tel"
-            placeholder="телефон (по желание)"
+            placeholder={m.form_phone_placeholder()}
           />
         )}
       </form.Field>
       <Button disabled={join.isPending} size="lg" type="submit">
-        {join.isPending ? "Записваме те…" : cta.label}
+        {join.isPending ? m.form_submitting() : cta.label()}
       </Button>
       {join.isError ? (
-        <p className="text-destructive text-sm">
-          Нещо се обърка — опитай пак след малко.
-        </p>
+        <p className="text-destructive text-sm">{m.form_error()}</p>
       ) : null}
     </form>
   );

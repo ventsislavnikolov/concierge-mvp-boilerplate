@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { siteConfig } from "../src/site.config";
 
+// Message functions resolve to the base locale (bg) in this Node context.
 const hero = siteConfig.sections.find((s) => s.type === "hero");
 const cta = siteConfig.sections.find((s) => s.type === "cta");
 
@@ -9,11 +10,11 @@ test("fake-door flow: land → join waitlist → answer quiz", async ({ page }) 
 
   // Landing renders the config-driven sections
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    hero?.headline ?? ""
+    hero?.headline() ?? ""
   );
   await expect(page.locator("#waitlist")).toBeVisible();
 
-  // No horizontal scroll at mobile viewport (360–412px)
+  // No horizontal scroll at mobile viewport (360px)
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth
   );
@@ -23,16 +24,18 @@ test("fake-door flow: land → join waitlist → answer quiz", async ({ page }) 
   const email = `e2e-${Date.now()}@example.com`;
   await page.getByPlaceholder("имейл адрес").fill(email);
   await page
-    .getByRole("button", { name: cta?.button.label ?? "Запиши се" })
+    .getByRole("button", { name: cta?.button.label() ?? "Запиши се" })
     .click();
   await expect(page.getByText("Готово — ще ти пишем")).toBeVisible();
 
   // Quiz starts immediately after joining; answer every question
   for (const question of siteConfig.quiz.questions) {
-    await expect(page.getByText(question.question)).toBeVisible();
-    await page.getByRole("button", { name: question.options[0] ?? "" }).click();
+    await expect(page.getByText(question.question())).toBeVisible();
+    await page
+      .getByRole("button", { name: question.options[0]?.label() ?? "" })
+      .click();
   }
-  await expect(page.getByText(siteConfig.quiz.thanks)).toBeVisible();
+  await expect(page.getByText(siteConfig.quiz.thanks())).toBeVisible();
 });
 
 test("re-joining with the same email is acknowledged, not duplicated", async ({
@@ -46,8 +49,24 @@ test("re-joining with the same email is acknowledged, not duplicated", async ({
     await page.goto("/");
     await page.getByPlaceholder("имейл адрес").fill(email);
     await page
-      .getByRole("button", { name: cta?.button.label ?? "Запиши се" })
+      .getByRole("button", { name: cta?.button.label() ?? "Запиши се" })
       .click();
     await expect(page.getByText(expected)).toBeVisible();
   }
+});
+
+test("locales: /en and /el serve translated landing, bg stays unprefixed", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Organize the game with one link"
+  );
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+
+  await page.goto("/el");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Οργάνωσε το παιχνίδι με ένα λινκ"
+  );
+  await expect(page.locator("html")).toHaveAttribute("lang", "el");
 });
