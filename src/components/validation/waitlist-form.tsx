@@ -3,10 +3,12 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { type ChangeEvent, type FormEvent, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Quiz } from "@/components/validation/quiz";
 import { capture } from "@/lib/posthog";
 import { leadSchema } from "@/lib/validation";
 import { siteConfig } from "@/site.config";
 import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 type Phase = "idle" | "joined" | "already";
 
@@ -50,6 +52,7 @@ function LeadInput({
 export function WaitlistForm({ cta }: { cta: { label: string } }) {
   const convexAvailable = Boolean(import.meta.env.VITE_CONVEX_URL);
   const [phase, setPhase] = useState<Phase>("idle");
+  const [leadId, setLeadId] = useState<Id<"leads"> | null>(null);
   const join = useMutation({
     mutationFn: useConvexMutation(api.leads.join),
   });
@@ -67,6 +70,7 @@ export function WaitlistForm({ cta }: { cta: { label: string } }) {
         tagline: siteConfig.brand.tagline,
       });
       capture("waitlist_joined", { alreadyJoined: result.alreadyJoined });
+      setLeadId(result.leadId);
       setPhase(result.alreadyJoined ? "already" : "joined");
     },
   });
@@ -93,11 +97,14 @@ export function WaitlistForm({ cta }: { cta: { label: string } }) {
 
   if (phase !== "idle") {
     return (
-      <p className="rounded-lg border bg-card px-4 py-3 text-card-foreground">
-        {phase === "joined"
-          ? "Готово — ще ти пишем, когато отворим достъпа. ✅"
-          : "Вече си в списъка — ще се чуем скоро. ✅"}
-      </p>
+      <div className="flex w-full max-w-md flex-col items-center gap-4">
+        <p className="rounded-lg border bg-card px-4 py-3 text-card-foreground">
+          {phase === "joined"
+            ? "Готово — ще ти пишем, когато отворим достъпа. ✅"
+            : "Вече си в списъка — ще се чуем скоро. ✅"}
+        </p>
+        {leadId ? <Quiz leadId={leadId} /> : null}
+      </div>
     );
   }
 

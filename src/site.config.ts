@@ -33,6 +33,19 @@ export interface CtaSection {
 
 export type Section = HeroSection | PainSection | SolutionSection | CtaSection;
 
+export interface QuizQuestion {
+  id: string;
+  options: string[];
+  /** Probe current behavior (Mom Test) — never future intent. */
+  question: string;
+}
+
+export interface QuizConfig {
+  questions: QuizQuestion[];
+  thanks: string;
+  title: string;
+}
+
 export interface SiteConfig {
   brand: {
     name: string;
@@ -43,6 +56,7 @@ export interface SiteConfig {
     description: string;
     lang: string;
   };
+  quiz: QuizConfig;
   sections: Section[];
 }
 
@@ -56,6 +70,38 @@ export const siteConfig: SiteConfig = {
       "Записване с един клик, жив списък с резерви и бот в групата. Спри да преписваш списъци на ръка.",
     lang: "bg",
     title: "Мачът е в неделя — организирай мача с един линк",
+  },
+  quiz: {
+    questions: [
+      {
+        id: "organize-today",
+        options: [
+          "Съобщение в групов чат и броим на ръка",
+          "Google Sheets / Excel списък",
+          "Един човек звъни на всички",
+          "Друго / никак",
+        ],
+        question: "Как организирате мачовете в момента?",
+      },
+      {
+        id: "frequency",
+        options: ["Всяка седмица", "Няколко пъти месечно", "По-рядко"],
+        question: "Колко често играете?",
+      },
+      {
+        id: "last-pain",
+        options: [
+          "Отказали са ни терена, защото бяхме малко хора",
+          "Играли сме с непълни отбори",
+          "Спор кой е платил и кой не",
+          "Не помня такъв случай",
+        ],
+        question: "Кое от тези ти се е случвало последния месец?",
+      },
+    ],
+    thanks:
+      "Мерси! Това ни помага да направим нещото, което наистина ви трябва.",
+    title: "Още 30 секунди — 3 бързи въпроса",
   },
   sections: [
     {
