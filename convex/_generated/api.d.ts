@@ -10,6 +10,7 @@
 
 import type * as emails from "../emails.js";
 import type * as leads from "../leads.js";
+import type * as quiz from "../quiz.js";
 
 import type {
   ApiFromModules,
@@ -20,6 +21,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   emails: typeof emails;
   leads: typeof leads;
+  quiz: typeof quiz;
 }>;
 
 /**
