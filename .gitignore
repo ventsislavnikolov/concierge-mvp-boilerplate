@@ -35,3 +35,4 @@ test-results/
 .env*
 test-results/
 playwright-report/
+src/paraglide/

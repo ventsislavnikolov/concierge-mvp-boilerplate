@@ -3,7 +3,14 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { ConvexProvider } from "convex/react";
+import { deLocalizeUrl, localizeUrl } from "@/paraglide/runtime";
 import { routeTree } from "./routeTree.gen";
+
+// Localized URLs (/en/…, /el/…) map onto the unprefixed route tree.
+const rewrite = {
+  input: ({ url }: { url: URL }) => deLocalizeUrl(url),
+  output: ({ url }: { url: URL }) => localizeUrl(url),
+};
 
 export function getRouter() {
   // Absent env degrades gracefully: the landing renders, Convex-backed
@@ -14,6 +21,7 @@ export function getRouter() {
     const queryClient = new QueryClient();
     const router = createRouter({
       context: { queryClient },
+      rewrite,
       routeTree,
       scrollRestoration: true,
     });
@@ -36,6 +44,7 @@ export function getRouter() {
 
   const router = createRouter({
     context: { queryClient },
+    rewrite,
     routeTree,
     scrollRestoration: true,
     Wrap: ({ children }) => (

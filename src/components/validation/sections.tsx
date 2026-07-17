@@ -13,13 +13,13 @@ function Hero({ section }: { section: HeroSection }) {
   return (
     <section className="flex flex-col items-center gap-6 px-6 py-20 text-center sm:py-28">
       <h1 className="max-w-2xl text-balance font-semibold text-4xl tracking-tight sm:text-5xl">
-        {section.headline}
+        {section.headline()}
       </h1>
       <p className="max-w-xl text-balance text-lg text-muted-foreground">
-        {section.subline}
+        {section.subline()}
       </p>
       <Button asChild size="lg">
-        <a href={section.cta.href}>{section.cta.label}</a>
+        <a href={section.cta.href}>{section.cta.label()}</a>
       </Button>
     </section>
   );
@@ -29,15 +29,15 @@ function Pain({ section }: { section: PainSection }) {
   return (
     <section className="mx-auto w-full max-w-2xl px-6 py-14">
       <h2 className="mb-6 font-semibold text-2xl tracking-tight">
-        {section.title}
+        {section.title()}
       </h2>
       <ul className="flex flex-col gap-3">
         {section.points.map((point) => (
           <li
             className="rounded-lg border bg-card px-4 py-3 text-card-foreground"
-            key={point}
+            key={point()}
           >
-            {point}
+            {point()}
           </li>
         ))}
       </ul>
@@ -49,17 +49,17 @@ function Solution({ section }: { section: SolutionSection }) {
   return (
     <section className="mx-auto w-full max-w-4xl px-6 py-14">
       <h2 className="mb-8 text-center font-semibold text-2xl tracking-tight">
-        {section.title}
+        {section.title()}
       </h2>
       <div className="grid gap-4 sm:grid-cols-3">
         {section.features.map((feature) => (
           <div
             className="flex flex-col gap-2 rounded-lg border bg-card p-5 text-card-foreground"
-            key={feature.title}
+            key={feature.title()}
           >
-            <h3 className="font-medium">{feature.title}</h3>
+            <h3 className="font-medium">{feature.title()}</h3>
             <p className="text-muted-foreground text-sm">
-              {feature.description}
+              {feature.description()}
             </p>
           </div>
         ))}
@@ -75,14 +75,14 @@ function Cta({ section }: { section: CtaSection }) {
       id="waitlist"
     >
       <h2 className="text-balance font-semibold text-3xl tracking-tight">
-        {section.title}
+        {section.title()}
       </h2>
       <p className="max-w-lg text-balance text-muted-foreground">
-        {section.subtitle}
+        {section.subtitle()}
       </p>
       <WaitlistForm cta={{ label: section.button.label }} />
       {section.disclaimer ? (
-        <p className="text-muted-foreground text-xs">{section.disclaimer}</p>
+        <p className="text-muted-foreground text-xs">{section.disclaimer()}</p>
       ) : null}
     </section>
   );

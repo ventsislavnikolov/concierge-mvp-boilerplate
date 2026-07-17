@@ -9,6 +9,8 @@
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "noEmit": true,
+    // paraglide emits JSDoc-typed JS into src/paraglide
+    "allowJs": true,
     "paths": {
       "@/*": ["./src/*"]
     }

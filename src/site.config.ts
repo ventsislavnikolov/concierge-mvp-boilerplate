@@ -1,33 +1,38 @@
 /**
- * The single file you edit to rebrand this template for a new idea.
+ * The single file you edit to restructure this template for a new idea.
  * Sections render in array order; add, remove, or repeat slots freely.
- * Copy lives here until i18n (Paraglide) replaces raw strings with messages.
+ * Copy lives in messages/{bg,en,el}.json — fields here hold message
+ * functions (m.*), so every string is translated in one place.
  */
 
+import { m } from "@/paraglide/messages";
+
+type Msg = () => string;
+
 export interface HeroSection {
-  cta: { label: string; href: string };
-  headline: string;
-  subline: string;
+  cta: { label: Msg; href: string };
+  headline: Msg;
+  subline: Msg;
   type: "hero";
 }
 
 export interface PainSection {
-  points: string[];
-  title: string;
+  points: Msg[];
+  title: Msg;
   type: "pain";
 }
 
 export interface SolutionSection {
-  features: { title: string; description: string }[];
-  title: string;
+  features: { title: Msg; description: Msg }[];
+  title: Msg;
   type: "solution";
 }
 
 export interface CtaSection {
-  button: { label: string; href: string };
-  disclaimer?: string;
-  subtitle: string;
-  title: string;
+  button: { label: Msg; href: string };
+  disclaimer?: Msg;
+  subtitle: Msg;
+  title: Msg;
   type: "cta";
 }
 
@@ -35,26 +40,25 @@ export type Section = HeroSection | PainSection | SolutionSection | CtaSection;
 
 export interface QuizQuestion {
   id: string;
-  options: string[];
+  options: { id: string; label: Msg }[];
   /** Probe current behavior (Mom Test) — never future intent. */
-  question: string;
+  question: Msg;
 }
 
 export interface QuizConfig {
   questions: QuizQuestion[];
-  thanks: string;
-  title: string;
+  thanks: Msg;
+  title: Msg;
 }
 
 export interface SiteConfig {
   brand: {
-    name: string;
-    tagline: string;
+    name: Msg;
+    tagline: Msg;
   };
   meta: {
-    title: string;
-    description: string;
-    lang: string;
+    title: Msg;
+    description: Msg;
   };
   quiz: QuizConfig;
   sections: Section[];
@@ -62,92 +66,85 @@ export interface SiteConfig {
 
 export const siteConfig: SiteConfig = {
   brand: {
-    name: "Мачът е в неделя",
-    tagline: "Организирай мача с един линк",
+    name: m.brand_name,
+    tagline: m.brand_tagline,
   },
   meta: {
-    description:
-      "Записване с един клик, жив списък с резерви и бот в групата. Спри да преписваш списъци на ръка.",
-    lang: "bg",
-    title: "Мачът е в неделя — организирай мача с един линк",
+    description: m.meta_description,
+    title: m.meta_title,
   },
   quiz: {
     questions: [
       {
         id: "organize-today",
         options: [
-          "Съобщение в групов чат и броим на ръка",
-          "Google Sheets / Excel списък",
-          "Един човек звъни на всички",
-          "Друго / никак",
+          { id: "chat", label: m.quiz_q_organize_chat },
+          { id: "sheet", label: m.quiz_q_organize_sheet },
+          { id: "calls", label: m.quiz_q_organize_calls },
+          { id: "other", label: m.quiz_q_organize_other },
         ],
-        question: "Как организирате мачовете в момента?",
+        question: m.quiz_q_organize,
       },
       {
         id: "frequency",
-        options: ["Всяка седмица", "Няколко пъти месечно", "По-рядко"],
-        question: "Колко често играете?",
+        options: [
+          { id: "weekly", label: m.quiz_q_frequency_weekly },
+          { id: "monthly", label: m.quiz_q_frequency_monthly },
+          { id: "rarely", label: m.quiz_q_frequency_rarely },
+        ],
+        question: m.quiz_q_frequency,
       },
       {
         id: "last-pain",
         options: [
-          "Отказали са ни терена, защото бяхме малко хора",
-          "Играли сме с непълни отбори",
-          "Спор кой е платил и кой не",
-          "Не помня такъв случай",
+          { id: "denied", label: m.quiz_q_pain_denied },
+          { id: "incomplete", label: m.quiz_q_pain_incomplete },
+          { id: "payment", label: m.quiz_q_pain_payment },
+          { id: "none", label: m.quiz_q_pain_none },
         ],
-        question: "Кое от тези ти се е случвало последния месец?",
+        question: m.quiz_q_pain,
       },
     ],
-    thanks:
-      "Мерси! Това ни помага да направим нещото, което наистина ви трябва.",
-    title: "Още 30 секунди — 3 бързи въпроса",
+    thanks: m.quiz_thanks,
+    title: m.quiz_title,
   },
   sections: [
     {
-      cta: { href: "#waitlist", label: "Запиши се за ранен достъп" },
-      headline: "Организирай мача с един линк",
-      subline:
-        "Записване с един клик, жив списък с титуляри и резерви, напомняния преди мача — направо в групата ви.",
+      cta: { href: "#waitlist", label: m.hero_cta },
+      headline: m.hero_headline,
+      subline: m.hero_subline,
       type: "hero",
     },
     {
       points: [
-        "Списъкът се преписва на ръка след всяко ново съобщение в групата.",
-        "В четвъртък си на 12 души, в неделя сутрин сте 7.",
-        "Кой е платил и кой не — никой не помни.",
-        "Резервите разбират, че играят, 30 минути преди мача.",
+        m.pain_point_copying,
+        m.pain_point_dropout,
+        m.pain_point_payments,
+        m.pain_point_reserves,
       ],
-      title: "Познато ли ти е?",
+      title: m.pain_title,
       type: "pain",
     },
     {
       features: [
         {
-          description:
-            "Хвърляш линк в групата — всеки се записва сам. Без регистрация за играчите.",
-          title: "Запис с един клик",
+          description: m.solution_oneclick_desc,
+          title: m.solution_oneclick_title,
         },
         {
-          description:
-            "Титуляри и резерви се виждат от всички, обновяват се на момента.",
-          title: "Жив списък",
+          description: m.solution_livelist_desc,
+          title: m.solution_livelist_title,
         },
-        {
-          description:
-            "Ботът публикува обновения списък в Telegram групата при всяка промяна.",
-          title: "Бот в групата",
-        },
+        { description: m.solution_bot_desc, title: m.solution_bot_title },
       ],
-      title: "Как ще работи",
+      title: m.solution_title,
       type: "solution",
     },
     {
-      button: { href: "#waitlist", label: "Запиши се" },
-      disclaimer: "Без спам. Само едно писмо, когато сме готови.",
-      subtitle:
-        "Остави имейл и ще ти пишем, когато отворим ранния достъп. Първите отбори играят безплатно.",
-      title: "Искаш ли го за твоя отбор?",
+      button: { href: "#waitlist", label: m.cta_button },
+      disclaimer: m.cta_disclaimer,
+      subtitle: m.cta_subtitle,
+      title: m.cta_title,
       type: "cta",
     },
   ],
