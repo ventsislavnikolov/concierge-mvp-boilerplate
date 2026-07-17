@@ -33,3 +33,5 @@ playwright-report/
 test-results/
 .vercel
 .env*
+test-results/
+playwright-report/

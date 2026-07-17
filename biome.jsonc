@@ -12,5 +12,19 @@
       "!docs",
       "!tools"
     ]
-  }
+  },
+  "overrides": [
+    {
+      // E2E specs are sequential by nature: browser steps await in order
+      "includes": ["e2e/**"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noAwaitInLoops": "off",
+            "useTopLevelRegex": "off"
+          }
+        }
+      }
+    }
+  ]
 }
