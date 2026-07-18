@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
+import { authComponent } from "./auth";
 
 /**
  * Join the waitlist. Idempotent per email: re-joining returns the
@@ -35,13 +36,14 @@ export const join = mutation({
   },
 });
 
-/**
- * All leads, newest first. Consumed by the admin table (#14) — will be
- * auth-gated when Better Auth lands (#9).
- */
+/** All leads, newest first. Signed-in users only (admin table, #14). */
 export const list = query({
   args: {},
   handler: async (ctx) => {
+    const user = await authComponent.safeGetAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
     const leads = await ctx.db.query("leads").order("desc").collect();
     return leads;
   },

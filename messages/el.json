@@ -45,5 +45,15 @@
   "quiz_q_pain_denied": "Χάσαμε το γήπεδο γιατί ήμασταν λίγοι",
   "quiz_q_pain_incomplete": "Παίξαμε με ελλιπείς ομάδες",
   "quiz_q_pain_payment": "Καβγάς για το ποιος πλήρωσε",
-  "quiz_q_pain_none": "Δεν θυμάμαι κάτι τέτοιο"
+  "quiz_q_pain_none": "Δεν θυμάμαι κάτι τέτοιο",
+  "auth_signin_title": "Σύνδεση",
+  "auth_signin_subtitle": "Θα σου στείλουμε σύνδεσμο σύνδεσης με email.",
+  "auth_magic_button": "Στείλε σύνδεσμο σύνδεσης",
+  "auth_magic_sent": "Έλεγξε τα εισερχόμενά σου — σου στείλαμε σύνδεσμο σύνδεσης.",
+  "auth_google_button": "Συνέχεια με Google",
+  "auth_error": "Κάτι πήγε στραβά. Δοκίμασε ξανά.",
+  "auth_signout": "Αποσύνδεση",
+  "auth_admin_title": "Διαχείριση",
+  "auth_app_title": "Εφαρμογή",
+  "auth_shell_empty": "Σύντομα εδώ θα υπάρχει πίνακας."
 }

@@ -45,5 +45,15 @@
   "quiz_q_pain_denied": "Lost the pitch because we were too few",
   "quiz_q_pain_incomplete": "Played with incomplete teams",
   "quiz_q_pain_payment": "Argument about who paid and who didn't",
-  "quiz_q_pain_none": "Can't recall any of these"
+  "quiz_q_pain_none": "Can't recall any of these",
+  "auth_signin_title": "Sign in",
+  "auth_signin_subtitle": "We'll email you a sign-in link.",
+  "auth_magic_button": "Send sign-in link",
+  "auth_magic_sent": "Check your inbox — we sent you a sign-in link.",
+  "auth_google_button": "Continue with Google",
+  "auth_error": "Something went wrong. Try again.",
+  "auth_signout": "Sign out",
+  "auth_admin_title": "Admin",
+  "auth_app_title": "App",
+  "auth_shell_empty": "A dashboard is coming here soon."
 }

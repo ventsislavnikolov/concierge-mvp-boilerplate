@@ -45,5 +45,15 @@
   "quiz_q_pain_denied": "Отказали са ни терена, защото бяхме малко хора",
   "quiz_q_pain_incomplete": "Играли сме с непълни отбори",
   "quiz_q_pain_payment": "Спор кой е платил и кой не",
-  "quiz_q_pain_none": "Не помня такъв случай"
+  "quiz_q_pain_none": "Не помня такъв случай",
+  "auth_signin_title": "Вход",
+  "auth_signin_subtitle": "Ще ти изпратим линк за вход по имейл.",
+  "auth_magic_button": "Изпрати линк за вход",
+  "auth_magic_sent": "Провери пощата си — изпратихме ти линк за вход.",
+  "auth_google_button": "Продължи с Google",
+  "auth_error": "Нещо се обърка. Опитай пак.",
+  "auth_signout": "Изход",
+  "auth_admin_title": "Админ",
+  "auth_app_title": "Приложение",
+  "auth_shell_empty": "Тук скоро ще има табло."
 }

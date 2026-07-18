@@ -11,6 +11,35 @@ import { internalAction } from "./_generated/server";
  * has RESEND_API_KEY set (`npx convex env set RESEND_API_KEY re_…`).
  * EMAIL_FROM defaults to Resend's shared onboarding sender.
  */
+/**
+ * Sends the sign-in magic link. Same no-op contract as sendWelcome:
+ * silently skipped unless RESEND_API_KEY is set on the deployment.
+ */
+export const sendMagicLink = internalAction({
+  args: {
+    email: v.string(),
+    url: v.string(),
+  },
+  handler: async (_ctx, args) => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      return { reason: "RESEND_API_KEY not set", sent: false as const };
+    }
+    const from = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+    const resend = new Resend(apiKey);
+    const { error } = await resend.emails.send({
+      from,
+      html: `<p>Влез с този линк (валиден 5 минути):</p><p><a href="${args.url}">Вход</a></p>`,
+      subject: "Линк за вход",
+      to: args.email,
+    });
+    if (error) {
+      return { reason: error.message, sent: false as const };
+    }
+    return { sent: true as const };
+  },
+});
+
 export const sendWelcome = internalAction({
   args: {
     brandName: v.string(),

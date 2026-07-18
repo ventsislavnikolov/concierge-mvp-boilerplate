@@ -2,7 +2,6 @@ import { ConvexQueryClient } from "@convex-dev/react-query";
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
-import { ConvexProvider } from "convex/react";
 import { deLocalizeUrl, localizeUrl } from "@/paraglide/runtime";
 import { routeTree } from "./routeTree.gen";
 
@@ -42,16 +41,13 @@ export function getRouter() {
   });
   convexQueryClient.connect(queryClient);
 
+  // The Convex provider lives in __root, where ConvexBetterAuthProvider
+  // wraps the tree whenever a ConvexQueryClient is in router context.
   const router = createRouter({
-    context: { queryClient },
+    context: { convexQueryClient, queryClient },
     rewrite,
     routeTree,
     scrollRestoration: true,
-    Wrap: ({ children }) => (
-      <ConvexProvider client={convexQueryClient.convexClient}>
-        {children}
-      </ConvexProvider>
-    ),
   });
   setupRouterSsrQueryIntegration({ queryClient, router });
   return router;

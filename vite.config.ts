@@ -44,4 +44,9 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  // Bundle the Better Auth component during SSR to avoid module
+  // resolution issues (per its TanStack Start guide).
+  ssr: {
+    noExternal: ["@convex-dev/better-auth"],
+  },
 });
