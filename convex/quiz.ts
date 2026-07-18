@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
+import { authComponent } from "./auth";
 
 /**
  * Store one quiz answer, linked to the lead. Idempotent per
@@ -22,5 +23,27 @@ export const answer = mutation({
       return previous._id;
     }
     return await ctx.db.insert("quizAnswers", args);
+  },
+});
+
+/**
+ * Answer counts per (question, option id) for the admin dashboard.
+ * Answers store option ids, so counts aggregate across locales.
+ */
+export const summary = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await authComponent.safeGetAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+    const answers = await ctx.db.query("quizAnswers").collect();
+    const counts: Record<string, Record<string, number>> = {};
+    for (const entry of answers) {
+      const question = counts[entry.questionId] ?? {};
+      question[entry.answer] = (question[entry.answer] ?? 0) + 1;
+      counts[entry.questionId] = question;
+    }
+    return { counts, total: answers.length };
   },
 });

@@ -55,5 +55,20 @@
   "auth_signout": "Αποσύνδεση",
   "auth_admin_title": "Διαχείριση",
   "auth_app_title": "Εφαρμογή",
-  "auth_shell_empty": "Σύντομα εδώ θα υπάρχει πίνακας."
+  "auth_shell_empty": "Σύντομα εδώ θα υπάρχει πίνακας.",
+  "admin_loading": "Φόρτωση…",
+  "admin_funnel_title": "Χωνί μετατροπών",
+  "admin_visits": "Επισκέψεις",
+  "admin_form_starts": "Ξεκινήματα φόρμας",
+  "admin_joins": "Εγγραφές",
+  "admin_join_rate": "Επίσκεψη → εγγραφή",
+  "admin_quiz_title": "Απαντήσεις κουίζ",
+  "admin_quiz_total": "Σύνολο απαντήσεων",
+  "admin_leads_title": "Επαφές",
+  "admin_leads_empty": "Δεν υπάρχουν εγγραφές ακόμα.",
+  "admin_col_email": "Email",
+  "admin_col_phone": "Τηλέφωνο",
+  "admin_col_locale": "Γλώσσα",
+  "admin_col_source": "Πηγή",
+  "admin_col_date": "Ημερομηνία"
 }

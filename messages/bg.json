@@ -55,5 +55,20 @@
   "auth_signout": "Изход",
   "auth_admin_title": "Админ",
   "auth_app_title": "Приложение",
-  "auth_shell_empty": "Тук скоро ще има табло."
+  "auth_shell_empty": "Тук скоро ще има табло.",
+  "admin_loading": "Зареждане…",
+  "admin_funnel_title": "Фуния",
+  "admin_visits": "Посещения",
+  "admin_form_starts": "Започнати форми",
+  "admin_joins": "Записвания",
+  "admin_join_rate": "Посещение → запис",
+  "admin_quiz_title": "Отговори от квиза",
+  "admin_quiz_total": "Общо отговори",
+  "admin_leads_title": "Лийдове",
+  "admin_leads_empty": "Още няма записани.",
+  "admin_col_email": "Имейл",
+  "admin_col_phone": "Телефон",
+  "admin_col_locale": "Език",
+  "admin_col_source": "Източник",
+  "admin_col_date": "Дата"
 }

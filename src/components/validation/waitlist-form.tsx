@@ -1,10 +1,17 @@
 import { useConvexMutation } from "@convex-dev/react-query";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import { type ChangeEvent, type FormEvent, useCallback, useState } from "react";
+import {
+  type ChangeEvent,
+  type FormEvent,
+  useCallback,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Quiz } from "@/components/validation/quiz";
 import { capture } from "@/lib/posthog";
+import { useTrack } from "@/lib/track";
 import { leadSchema } from "@/lib/validation";
 import { m } from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";
@@ -28,7 +35,7 @@ function LeadInput({
   };
 } & Pick<
   React.ComponentProps<"input">,
-  "autoComplete" | "inputMode" | "placeholder"
+  "autoComplete" | "inputMode" | "onFocus" | "placeholder"
 >) {
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
@@ -55,9 +62,20 @@ export function WaitlistForm({ cta }: { cta: { label: () => string } }) {
   const convexAvailable = Boolean(import.meta.env.VITE_CONVEX_URL);
   const [phase, setPhase] = useState<Phase>("idle");
   const [leadId, setLeadId] = useState<Id<"leads"> | null>(null);
+  const track = useTrack();
+  const formStarted = useRef(false);
   const join = useMutation({
     mutationFn: useConvexMutation(api.leads.join),
   });
+
+  const handleEmailFocus = useCallback(() => {
+    if (formStarted.current) {
+      return;
+    }
+    formStarted.current = true;
+    track("form_start");
+    capture("form_started");
+  }, [track]);
 
   const form = useForm({
     defaultValues: { email: "", phone: "" },
@@ -130,6 +148,7 @@ export function WaitlistForm({ cta }: { cta: { label: () => string } }) {
               autoComplete="email"
               field={field}
               inputMode="email"
+              onFocus={handleEmailFocus}
               placeholder={m.form_email_placeholder()}
             />
             {field.state.meta.errors[0] ? (
