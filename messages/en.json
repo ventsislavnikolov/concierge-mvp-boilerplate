@@ -70,5 +70,11 @@
   "admin_col_phone": "Phone",
   "admin_col_locale": "Locale",
   "admin_col_source": "Source",
-  "admin_col_date": "Date"
+  "admin_col_date": "Date",
+  "app_list_title": "Live demo: list",
+  "app_list_hint": "Open a second tab — the list updates live.",
+  "app_list_placeholder": "Add an item…",
+  "app_list_add": "Add",
+  "app_list_remove": "Remove",
+  "app_list_empty": "Empty — add the first item."
 }

@@ -70,5 +70,11 @@
   "admin_col_phone": "Телефон",
   "admin_col_locale": "Език",
   "admin_col_source": "Източник",
-  "admin_col_date": "Дата"
+  "admin_col_date": "Дата",
+  "app_list_title": "Живо демо: списък",
+  "app_list_hint": "Отвори втори таб — списъкът се обновява на живо.",
+  "app_list_placeholder": "Добави ред…",
+  "app_list_add": "Добави",
+  "app_list_remove": "Изтрий",
+  "app_list_empty": "Празно е — добави първия ред."
 }
