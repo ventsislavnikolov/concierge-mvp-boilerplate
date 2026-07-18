@@ -70,5 +70,11 @@
   "admin_col_phone": "Τηλέφωνο",
   "admin_col_locale": "Γλώσσα",
   "admin_col_source": "Πηγή",
-  "admin_col_date": "Ημερομηνία"
+  "admin_col_date": "Ημερομηνία",
+  "app_list_title": "Ζωντανό demo: λίστα",
+  "app_list_hint": "Άνοιξε δεύτερη καρτέλα — η λίστα ενημερώνεται ζωντανά.",
+  "app_list_placeholder": "Πρόσθεσε στοιχείο…",
+  "app_list_add": "Προσθήκη",
+  "app_list_remove": "Αφαίρεση",
+  "app_list_empty": "Άδειο — πρόσθεσε το πρώτο στοιχείο."
 }

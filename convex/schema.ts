@@ -2,6 +2,11 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+  // Realtime demo (see convex/demo.ts) — the copyable pattern for
+  // product lists like a match roster. Delete freely per idea.
+  demoItems: defineTable({
+    text: v.string(),
+  }),
   events: defineTable({
     name: v.string(),
     payload: v.optional(v.record(v.string(), v.string())),
