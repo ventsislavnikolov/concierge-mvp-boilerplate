@@ -1,10 +1,16 @@
-import { useCallback } from "react";
+import { type ReactNode, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { m } from "@/paraglide/messages";
 
-/** Empty dashboard shell for /admin and /app — filled in by later tickets. */
-export function DashboardShell({ title }: { title: string }) {
+/** Authed page chrome: title + sign-out. Empty state without children. */
+export function DashboardShell({
+  children,
+  title,
+}: {
+  children?: ReactNode;
+  title: string;
+}) {
   const handleSignOut = useCallback(() => {
     authClient.signOut({
       fetchOptions: {
@@ -22,9 +28,11 @@ export function DashboardShell({ title }: { title: string }) {
           {m.auth_signout()}
         </Button>
       </header>
-      <p className="rounded-lg border border-dashed px-4 py-8 text-center text-muted-foreground">
-        {m.auth_shell_empty()}
-      </p>
+      {children ?? (
+        <p className="rounded-lg border border-dashed px-4 py-8 text-center text-muted-foreground">
+          {m.auth_shell_empty()}
+        </p>
+      )}
     </main>
   );
 }

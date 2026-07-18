@@ -55,5 +55,20 @@
   "auth_signout": "Sign out",
   "auth_admin_title": "Admin",
   "auth_app_title": "App",
-  "auth_shell_empty": "A dashboard is coming here soon."
+  "auth_shell_empty": "A dashboard is coming here soon.",
+  "admin_loading": "Loading…",
+  "admin_funnel_title": "Funnel",
+  "admin_visits": "Visits",
+  "admin_form_starts": "Form starts",
+  "admin_joins": "Joins",
+  "admin_join_rate": "Visit → join",
+  "admin_quiz_title": "Quiz answers",
+  "admin_quiz_total": "Total answers",
+  "admin_leads_title": "Leads",
+  "admin_leads_empty": "No leads yet.",
+  "admin_col_email": "Email",
+  "admin_col_phone": "Phone",
+  "admin_col_locale": "Locale",
+  "admin_col_source": "Source",
+  "admin_col_date": "Date"
 }
