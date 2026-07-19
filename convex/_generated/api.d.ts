@@ -15,6 +15,7 @@ import type * as events from "../events.js";
 import type * as http from "../http.js";
 import type * as leads from "../leads.js";
 import type * as quiz from "../quiz.js";
+import type * as telegram from "../telegram.js";
 
 import type {
   ApiFromModules,
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   leads: typeof leads;
   quiz: typeof quiz;
+  telegram: typeof telegram;
 }>;
 
 /**

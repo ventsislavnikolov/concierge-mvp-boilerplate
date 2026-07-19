@@ -27,6 +27,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "convex": "1.42.2",
+    "grammy": "1.45.1",
     "lucide-react": "^1.24.0",
     "nitro": "3.0.260610-beta",
     "posthog-js": "1.402.2",

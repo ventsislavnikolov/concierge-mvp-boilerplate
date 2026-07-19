@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
+import { internalQuery, mutation, query } from "./_generated/server";
 import { authComponent } from "./auth";
 
 /**
@@ -19,6 +20,13 @@ export const list = query({
   },
 });
 
+/** Same list for server-side consumers (Telegram bot) — no session. */
+export const listItems = internalQuery({
+  args: {},
+  handler: async (ctx) =>
+    await ctx.db.query("demoItems").order("desc").take(50),
+});
+
 export const add = mutation({
   args: { text: v.string() },
   handler: async (ctx, args) => {
@@ -30,7 +38,11 @@ export const add = mutation({
     if (!text) {
       return null;
     }
-    return await ctx.db.insert("demoItems", { text });
+    const id = await ctx.db.insert("demoItems", { text });
+    // Group-posting example: the bot mirrors list changes to Telegram
+    // (no-op unless the Telegram env is configured).
+    await ctx.scheduler.runAfter(0, internal.telegram.notifyListChanged, {});
+    return id;
   },
 });
 
@@ -42,5 +54,6 @@ export const remove = mutation({
       throw new Error("Unauthorized");
     }
     await ctx.db.delete(args.id);
+    await ctx.scheduler.runAfter(0, internal.telegram.notifyListChanged, {});
   },
 });
