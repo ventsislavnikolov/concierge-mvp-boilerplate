@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { authComponent } from "./auth";
+import { authComponent } from "./auth"; // module:admin
 
 /**
  * Store one quiz answer, linked to the lead. Idempotent per
@@ -26,6 +26,7 @@ export const answer = mutation({
   },
 });
 
+// module:admin
 /**
  * Answer counts per (question, option id) for the admin dashboard.
  * Answers store option ids, so counts aggregate across locales.
@@ -47,3 +48,4 @@ export const summary = query({
     return { counts, total: answers.length };
   },
 });
+// end-module:admin

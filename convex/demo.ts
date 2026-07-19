@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internal } from "./_generated/api";
+import { internal } from "./_generated/api"; // module:telegram
 import { internalQuery, mutation, query } from "./_generated/server";
 import { authComponent } from "./auth";
 
@@ -39,9 +39,11 @@ export const add = mutation({
       return null;
     }
     const id = await ctx.db.insert("demoItems", { text });
+    // module:telegram
     // Group-posting example: the bot mirrors list changes to Telegram
     // (no-op unless the Telegram env is configured).
     await ctx.scheduler.runAfter(0, internal.telegram.notifyListChanged, {});
+    // end-module:telegram
     return id;
   },
 });
@@ -54,6 +56,6 @@ export const remove = mutation({
       throw new Error("Unauthorized");
     }
     await ctx.db.delete(args.id);
-    await ctx.scheduler.runAfter(0, internal.telegram.notifyListChanged, {});
+    await ctx.scheduler.runAfter(0, internal.telegram.notifyListChanged, {}); // module:telegram
   },
 });

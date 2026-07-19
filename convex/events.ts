@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { authComponent } from "./auth";
+import { authComponent } from "./auth"; // module:admin
 
 /**
  * First-party funnel events (joins are counted from the leads table).
@@ -18,6 +18,7 @@ export const track = mutation({
   },
 });
 
+// module:admin
 /** Funnel counts: visits → form starts → joins. Signed-in users only. */
 export const funnel = query({
   args: {},
@@ -42,3 +43,4 @@ export const funnel = query({
     };
   },
 });
+// end-module:admin

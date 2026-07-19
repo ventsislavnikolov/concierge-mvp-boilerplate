@@ -1,0 +1,79 @@
+{
+  "readme": "Composition manifest. Validation core (landing, quiz, waitlist, PostHog, i18n, leads, Sentry) is everything not listed here and is never stripped. Each product add-on lists: whole files to delete, seam files containing '// module:<name>' markers (block: comment-only start/end lines; inline: trailing comment on one line), npm deps, message-key prefixes, and Convex env vars. tools/strip-modules.mjs <profile> deletes the modules a profile excludes. Runtime behavior is independent of stripping: every module also no-ops when its env is absent.",
+  "profiles": {
+    "product": ["auth", "admin", "realtime", "telegram"],
+    "validation": []
+  },
+  "modules": {
+    "admin": {
+      "dependsOn": ["auth"],
+      "deps": [],
+      "description": "Admin dashboard: funnel, quiz summary, leads table",
+      "env": [],
+      "files": ["src/routes/_authed/admin.tsx"],
+      "kind": "product-addon",
+      "messagePrefixes": ["admin_"],
+      "seams": ["convex/leads.ts", "convex/events.ts", "convex/quiz.ts"]
+    },
+    "auth": {
+      "dependsOn": [],
+      "deps": ["@convex-dev/better-auth", "better-auth"],
+      "description": "Better Auth (magic link + Google) on the Convex component",
+      "env": [
+        "BETTER_AUTH_SECRET",
+        "SITE_URL",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "VITE_CONVEX_SITE_URL"
+      ],
+      "files": [
+        "convex/auth.config.ts",
+        "convex/auth.ts",
+        "convex/convex.config.ts",
+        "convex/http.ts",
+        "src/components/auth/dashboard-shell.tsx",
+        "src/lib/auth-client.ts",
+        "src/lib/auth-server.ts",
+        "src/routes/_authed.tsx",
+        "src/routes/api/auth/$.ts",
+        "src/routes/sign-in.tsx"
+      ],
+      "kind": "product-addon",
+      "messagePrefixes": ["auth_"],
+      "seams": [
+        "convex/emails.ts",
+        "src/router.tsx",
+        "src/routes/__root.tsx",
+        "vite.config.ts"
+      ]
+    },
+    "realtime": {
+      "dependsOn": ["auth"],
+      "deps": [],
+      "description": "Live-updating list demo (the copyable realtime pattern)",
+      "env": [],
+      "files": [
+        "convex/demo.ts",
+        "e2e/realtime.spec.ts",
+        "src/routes/_authed/app.tsx"
+      ],
+      "kind": "product-addon",
+      "messagePrefixes": ["app_list_"],
+      "seams": ["convex/schema.ts"]
+    },
+    "telegram": {
+      "dependsOn": ["auth", "realtime"],
+      "deps": ["grammy"],
+      "description": "grammY bot: webhook commands + group notifications",
+      "env": [
+        "TELEGRAM_BOT_TOKEN",
+        "TELEGRAM_CHAT_ID",
+        "TELEGRAM_WEBHOOK_SECRET"
+      ],
+      "files": ["convex/telegram.ts"],
+      "kind": "product-addon",
+      "messagePrefixes": [],
+      "seams": ["convex/demo.ts", "convex/http.ts"]
+    }
+  }
+}

@@ -11,6 +11,7 @@ import { internalAction } from "./_generated/server";
  * has RESEND_API_KEY set (`npx convex env set RESEND_API_KEY re_…`).
  * EMAIL_FROM defaults to Resend's shared onboarding sender.
  */
+// module:auth
 /**
  * Sends the sign-in magic link. Same no-op contract as sendWelcome:
  * silently skipped unless RESEND_API_KEY is set on the deployment.
@@ -39,6 +40,7 @@ export const sendMagicLink = internalAction({
     return { sent: true as const };
   },
 });
+// end-module:auth
 
 export const sendWelcome = internalAction({
   args: {

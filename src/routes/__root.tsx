@@ -1,5 +1,5 @@
-import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react";
-import type { ConvexQueryClient } from "@convex-dev/react-query";
+import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react"; // module:auth
+import type { ConvexQueryClient } from "@convex-dev/react-query"; // module:auth
 import type { QueryClient } from "@tanstack/react-query";
 import {
   createRootRouteWithContext,
@@ -7,23 +7,26 @@ import {
   Outlet,
   Scripts,
 } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start"; // module:auth
 import type { ReactNode } from "react";
-import { authClient } from "@/lib/auth-client";
-import { getToken } from "@/lib/auth-server";
+import { authClient } from "@/lib/auth-client"; // module:auth
+import { getToken } from "@/lib/auth-server"; // module:auth
 import { getLocale } from "@/paraglide/runtime";
 import { siteConfig } from "@/site.config";
 import appCss from "@/styles.css?url";
 
+// module:auth
 const getAuth = createServerFn({ method: "GET" }).handler(async () => {
   const token = await getToken();
   return token ?? null;
 });
+// end-module:auth
 
 export const Route = createRootRouteWithContext<{
-  convexQueryClient?: ConvexQueryClient;
+  convexQueryClient?: ConvexQueryClient; // module:auth
   queryClient: QueryClient;
 }>()({
+  // module:auth
   beforeLoad: async ({ context }) => {
     if (!context.convexQueryClient) {
       return { isAuthenticated: false, token: null };
@@ -36,6 +39,7 @@ export const Route = createRootRouteWithContext<{
     }
     return { isAuthenticated: Boolean(token), token };
   },
+  // end-module:auth
   component: RootComponent,
   head: () => ({
     links: [{ href: appCss, rel: "stylesheet" }],
@@ -49,24 +53,26 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootComponent() {
-  const { convexQueryClient, token } = Route.useRouteContext();
   const content = (
     <RootDocument>
       <Outlet />
     </RootDocument>
   );
-  if (!convexQueryClient) {
-    return content;
+  // module:auth
+  const { convexQueryClient, token } = Route.useRouteContext();
+  if (convexQueryClient) {
+    return (
+      <ConvexBetterAuthProvider
+        authClient={authClient}
+        client={convexQueryClient.convexClient}
+        initialToken={token ?? undefined}
+      >
+        {content}
+      </ConvexBetterAuthProvider>
+    );
   }
-  return (
-    <ConvexBetterAuthProvider
-      authClient={authClient}
-      client={convexQueryClient.convexClient}
-      initialToken={token ?? undefined}
-    >
-      {content}
-    </ConvexBetterAuthProvider>
-  );
+  // end-module:auth
+  return content;
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
