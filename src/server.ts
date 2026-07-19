@@ -1,3 +1,6 @@
+// Sentry first: initializes before anything else (no-op without DSN).
+import "../instrument.server.mjs";
+import { wrapFetchWithSentry } from "@sentry/tanstackstart-react";
 import handler from "@tanstack/react-start/server-entry";
 import { paraglideMiddleware } from "./paraglide/server.js";
 
@@ -5,7 +8,7 @@ import { paraglideMiddleware } from "./paraglide/server.js";
  * Wraps Start's server entry so every request resolves its locale
  * (url → cookie → Accept-Language → bg) before rendering.
  */
-export default {
+export default wrapFetchWithSentry({
   fetch(req: Request): Promise<Response> {
     // Pass the ORIGINAL request: the router's rewrite option owns URL
     // mapping (deLocalizeUrl/localizeUrl); the middleware only resolves
@@ -13,4 +16,4 @@ export default {
     // cause a redirect loop.
     return paraglideMiddleware(req, () => handler.fetch(req));
   },
-};
+});
