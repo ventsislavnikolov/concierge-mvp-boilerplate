@@ -1,3 +1,4 @@
 allowBuilds:
   esbuild: true
   core-js: false
+  '@sentry/cli': true

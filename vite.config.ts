@@ -1,4 +1,5 @@
 import { paraglideVitePlugin } from "@inlang/paraglide-js";
+import { sentryTanstackStart } from "@sentry/tanstackstart-react/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
@@ -37,6 +38,16 @@ export default defineConfig({
     nitro(),
     // react's vite plugin must come after start's vite plugin
     viteReact(),
+    // Last: uploads source maps to Sentry — only when a token is set.
+    ...(process.env.SENTRY_AUTH_TOKEN
+      ? [
+          sentryTanstackStart({
+            authToken: process.env.SENTRY_AUTH_TOKEN,
+            org: process.env.SENTRY_ORG,
+            project: process.env.SENTRY_PROJECT,
+          }),
+        ]
+      : []),
   ],
   resolve: {
     tsconfigPaths: true,
