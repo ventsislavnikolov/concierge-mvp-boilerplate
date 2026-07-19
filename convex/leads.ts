@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
-import { authComponent } from "./auth";
+import { authComponent } from "./auth"; // module:admin
 
 /**
  * Join the waitlist. Idempotent per email: re-joining returns the
@@ -36,6 +36,7 @@ export const join = mutation({
   },
 });
 
+// module:admin
 /** All leads, newest first. Signed-in users only (admin table, #14). */
 export const list = query({
   args: {},
@@ -48,3 +49,4 @@ export const list = query({
     return leads;
   },
 });
+// end-module:admin

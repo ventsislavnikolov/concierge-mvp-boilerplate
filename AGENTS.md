@@ -37,6 +37,13 @@ procedure in `NEW-IDEA.md`.
 - **Mobile-first**: everything must be usable at 360px with no horizontal
   overflow — `pnpm test:e2e` (Playwright, 360×740, builds prod) asserts it.
   If E2E results look stale, kill the leftover server on port 3000.
+- **Feature modules**: `modules.json` is the composition manifest —
+  validation core (never stripped) vs product add-ons (auth, admin,
+  realtime, telegram). Add-on code in shared files sits between
+  `// module:<name>` / `// end-module:<name>` marker lines (or a trailing
+  `// module:<name>` for single lines); `tools/strip-modules.mjs <profile>`
+  deletes excluded modules from a fresh clone. When adding add-on code to
+  a core file, add the markers and list the file in that module's `seams`.
 - **Stacked PRs**: merge the base PR into main first and delete its branch
   before merging the stacked one — merging the stack into an already-merged
   base branch strands the commits (happened twice: PRs #34, #37).
