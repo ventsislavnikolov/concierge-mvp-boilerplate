@@ -8,7 +8,8 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "prepare": "husky || true",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "create-idea": "node tools/create-idea.mjs"
   },
   "type": "module",
   "dependencies": {
