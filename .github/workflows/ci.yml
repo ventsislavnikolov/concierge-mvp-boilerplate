@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Always runs, needs no secrets — the gate for every push, PR, and fork.
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  # Playwright smoke against a Convex deployment. Runs only when the
+  # VITE_CONVEX_URL secret is set (skipped on forks so CI stays green).
+  # Point these secrets at a CI-only Convex deployment, not the one used
+  # for local dev — the specs write real e2e-* leads and funnel events.
+  e2e:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+    env:
+      VITE_CONVEX_URL: ${{ secrets.VITE_CONVEX_URL }}
+      VITE_CONVEX_SITE_URL: ${{ secrets.VITE_CONVEX_SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Skip without Convex secret
+        id: guard
+        run: |
+          if [ -z "$VITE_CONVEX_URL" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "VITE_CONVEX_URL not set — skipping E2E."
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.guard.outputs.run == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.guard.outputs.run == 'true'
+        run: pnpm exec playwright install --with-deps chromium
+        # Only the fake-door smoke: it needs just VITE_CONVEX_URL. The
+        # realtime spec needs Convex CLI creds + an auth-configured
+        # deployment, so it stays a local gate.
+      - if: steps.guard.outputs.run == 'true'
+        run: pnpm exec playwright test fake-door
+      - if: steps.guard.outputs.run == 'true' && failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  # semantic-release cuts a GitHub release from conventional commits.
+  release:
+    needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
