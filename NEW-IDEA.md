@@ -3,12 +3,21 @@
 Rebranding touches **4 content files**: `src/site.config.ts` (structure) and
 `messages/{bg,en,el}.json` (copy). Everything else is provisioning.
 
-## 1. Clone (5 min)
+## 1. Clone + scaffold (5 min)
 
 ```sh
 git clone <this-repo> my-idea && cd my-idea
+pnpm create-idea --name my-idea            # validation profile, bg/en/el
+# --profile product                        # keep auth/admin/realtime/telegram
+# --locales en --base en                   # single-locale idea
 pnpm install
 ```
+
+`create-idea` strips the add-ons your profile excludes, renames the
+package, sets the locale defaults, and removes its own tooling — leaving a
+clean repo. **Profiles**: `validation` (default) ships the fake-door core
+only; `product` keeps the realtime/auth/admin/Telegram add-ons for ideas
+that graduate to a real MVP.
 
 ## 2. Rewrite the copy (25 min)
 
