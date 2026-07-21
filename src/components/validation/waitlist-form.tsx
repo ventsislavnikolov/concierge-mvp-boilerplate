@@ -54,12 +54,27 @@ function LeadInput({
 }
 
 /**
- * The fake-door conversion point: email (+ optional phone) → Convex
- * lead → `waitlist_joined` PostHog event → welcome email. Falls back
- * to a mailto link when Convex is not configured.
+ * The fake-door conversion point. Convex hooks only run inside
+ * ConvexWaitlistForm, which is mounted solely when VITE_CONVEX_URL is
+ * set (i.e. under the ConvexProvider). Without it, the landing still
+ * renders a mailto fallback — no Convex hook is ever called.
  */
 export function WaitlistForm({ cta }: { cta: { label: () => string } }) {
-  const convexAvailable = Boolean(import.meta.env.VITE_CONVEX_URL);
+  if (import.meta.env.VITE_CONVEX_URL) {
+    return <ConvexWaitlistForm cta={cta} />;
+  }
+  return (
+    <Button asChild size="lg">
+      <a
+        href={`mailto:?subject=${encodeURIComponent(siteConfig.brand.name())}`}
+      >
+        {cta.label()}
+      </a>
+    </Button>
+  );
+}
+
+function ConvexWaitlistForm({ cta }: { cta: { label: () => string } }) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [leadId, setLeadId] = useState<Id<"leads"> | null>(null);
   const track = useTrack();
@@ -102,18 +117,6 @@ export function WaitlistForm({ cta }: { cta: { label: () => string } }) {
     },
     [form]
   );
-
-  if (!convexAvailable) {
-    return (
-      <Button asChild size="lg">
-        <a
-          href={`mailto:?subject=${encodeURIComponent(siteConfig.brand.name())}`}
-        >
-          {cta.label()}
-        </a>
-      </Button>
-    );
-  }
 
   if (phase !== "idle") {
     return (

@@ -25,7 +25,13 @@ procedure in `NEW-IDEA.md`.
   rewrite causes an infinite redirect loop (see the comment in that file).
 - **Env policy**: every optional integration no-ops without its env; the
   landing must always render. `RESEND_API_KEY` lives in the Convex deployment
-  env (`npx convex env set`), not `.env.local`.
+  env (`npx convex env set`), not `.env.local`. **Convex hooks
+  (`useConvexMutation`/`useConvexQuery`) throw without a `ConvexProvider`,
+  which only exists when `VITE_CONVEX_URL` is set — so a component calling one
+  must be mounted conditionally on `VITE_CONVEX_URL`, never call the hook then
+  guard after. Verify the no-env landing by building with `.env.local` moved
+  aside; `import.meta.env.VITE_CONVEX_URL` is inlined at build, so a shell
+  `env -u` does not simulate it.**
 - **Convex**: dev deployment is `zealous-walrus-442`. Live-test mutations with
   `npx convex run` before calling a ticket done. Mutations are idempotent by
   design (dedup by email / patch per lead+question).

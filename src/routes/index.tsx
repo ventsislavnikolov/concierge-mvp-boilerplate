@@ -10,15 +10,20 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const track = useTrack();
-
-  useEffect(() => {
-    track("visit", { locale: getLocale() });
-  }, [track]);
-
   return (
     <main className="min-h-svh">
+      {/* Convex hooks (useTrack) only mount under the ConvexProvider,
+          i.e. when VITE_CONVEX_URL is set. The landing renders regardless. */}
+      {import.meta.env.VITE_CONVEX_URL ? <VisitTracker /> : null}
       <SectionRenderer sections={siteConfig.sections} />
     </main>
   );
+}
+
+function VisitTracker() {
+  const track = useTrack();
+  useEffect(() => {
+    track("visit", { locale: getLocale() });
+  }, [track]);
+  return null;
 }
